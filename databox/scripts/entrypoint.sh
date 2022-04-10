@@ -33,8 +33,6 @@ if [[ "$INSTALL_REQUIREMENTS" = true || "$INSTALL_REQUIREMENTS" = True ]]; then
   echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
   echo "Installing requirements from $REQUIREMENTS_FILE_PATH"
   pip3 install -r $REQUIREMENTS_FILE_PATH
-  echo "Sleeping for 5 seconds..."
-  sleep 5
   echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 fi
 
@@ -45,42 +43,56 @@ fi
 echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 echo "Installing workspace"
 pip3 install --no-deps --editable $PHI_WORKSPACE_ROOT
-echo "Sleeping for 5 seconds..."
-sleep 5
 echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+
+############################################################################
+# Install phidata dev
+############################################################################
+
+if [[ "$INSTALL_PHIDATA_DEV" = true || "$INSTALL_PHIDATA_DEV" = True ]]; then
+  echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+  echo "Installing phidata"
+  pip3 install --no-deps --editable $PHIDATA_DIR_PATH
+  echo "Sleeping for 5 seconds..."
+  sleep 5
+  echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+fi
 
 ############################################################################
 # Init database
 ############################################################################
 
-init_airflow_db() {
-  airflow db init
-}
 if [[ "$INIT_AIRFLOW_DB" = true || "$INIT_AIRFLOW_DB" = True ]]; then
   echo "Initializing Airflow DB"
-  init_airflow_db
+  airflow db init
   echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 fi
 
 if [[ "$CREATE_AIRFLOW_TEST_USER" = true || "$CREATE_AIRFLOW_TEST_USER" = True ]]; then
   echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-  echo "Creating test user"
+  echo "Creating airflow user"
+  # Use defaults if variables are not set.
+  AF_USER_NAME=${AF_USER_NAME:="test"}
+  AF_USER_PASSWORD=${AF_USER_PASSWORD:="test"}
+  AF_USER_FIRST_NAME=${AF_USER_FIRST_NAME:="test"}
+  AF_USER_LAST_NAME=${AF_USER_LAST_NAME:="test"}
+  AF_USER_ROLE=${AF_USER_ROLE:="User"}
+  AF_USER_EMAIL=${AF_USER_EMAIL:="test@test.com"}
   airflow users create \
-    --username test \
-    --password test \
-    --firstname Test \
-    --lastname Test \
-    --role User \
-    --email test@test.com
+    --username ${AF_USER_NAME} \
+    --password ${AF_USER_PASSWORD} \
+    --firstname ${AF_USER_FIRST_NAME} \
+    --lastname ${AF_USER_LAST_NAME} \
+    --role ${AF_USER_ROLE} \
+    --email ${AF_USER_EMAIL}
+
   echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 fi
 
 if [[ "$INIT_AIRFLOW_SCHEDULER" = true || "$INIT_AIRFLOW_SCHEDULER" = True ]]; then
   echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-  echo "Running airflow scheduler deamon"
-  airflow scheduler -d
-  echo "Sleeping for 5 seconds..."
-  sleep 5
+  echo "Running: airflow scheduler --deamon"
+  airflow scheduler --daemon
   echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 fi
 
@@ -90,10 +102,8 @@ fi
 
 if [[ "$INIT_AIRFLOW_WEBSERVER" = true || "$INIT_AIRFLOW_WEBSERVER" = True ]]; then
   echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-  echo "Running airflow webserver"
+  echo "Running: airflow webserver"
   airflow webserver
-  echo "Sleeping for 5 seconds..."
-  sleep 5
   echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 fi
 
@@ -106,5 +116,5 @@ case "$1" in
 esac
 
 
-echo ">>> Welcome to your Databox!"
+echo ">>> Welcome to Databox!"
 while true; do sleep 18000; done

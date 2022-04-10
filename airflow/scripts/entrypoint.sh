@@ -32,11 +32,12 @@ if [[ "$WAIT_FOR_REDIS" = true || "$WAIT_FOR_REDIS" = True ]]; then
 fi
 
 ############################################################################
-# Wait for git sync
+# Wait for workspace directory to be available
 ############################################################################
 
 if [[ "$MOUNT_WORKSPACE" = true || "$MOUNT_WORKSPACE" = True ]]; then
   echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+  sleep 5
   echo "ls -l $PHI_WORKSPACE_PARENT : $(ls -l $PHI_WORKSPACE_PARENT)"
   echo "ls -l $PHI_WORKSPACE_ROOT : $(ls -l $PHI_WORKSPACE_ROOT)"
   echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
@@ -50,8 +51,6 @@ if [[ "$INSTALL_REQUIREMENTS" = true || "$INSTALL_REQUIREMENTS" = True ]]; then
   echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
   echo "Installing requirements from $REQUIREMENTS_FILE_PATH"
   pip3 install -r $REQUIREMENTS_FILE_PATH
-  echo "Sleeping for 5 seconds..."
-  sleep 5
   echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 fi
 
@@ -62,35 +61,39 @@ fi
 echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 echo "Installing workspace"
 pip3 install --no-deps --editable $PHI_WORKSPACE_ROOT
-echo "Sleeping for 5 seconds..."
-sleep 5
 echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 
 ############################################################################
 # Init database
 ############################################################################
 
-init_airflow_db() {
-  airflow db init
-}
 if [[ "$INIT_AIRFLOW_DB" = true || "$INIT_AIRFLOW_DB" = True ]]; then
   echo "Initializing Airflow DB"
-  init_airflow_db
+  airflow db init
   echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 fi
 
 if [[ "$CREATE_AIRFLOW_TEST_USER" = true || "$CREATE_AIRFLOW_TEST_USER" = True ]]; then
   echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-  echo "Creating test user"
+  echo "Creating airflow user"
+  # Use defaults if variables are not set.
+  AF_USER_NAME=${AF_USER_NAME:="test"}
+  AF_USER_PASSWORD=${AF_USER_PASSWORD:="test"}
+  AF_USER_FIRST_NAME=${AF_USER_FIRST_NAME:="test"}
+  AF_USER_LAST_NAME=${AF_USER_LAST_NAME:="test"}
+  AF_USER_ROLE=${AF_USER_ROLE:="User"}
+  AF_USER_EMAIL=${AF_USER_EMAIL:="test@test.com"}
   airflow users create \
-    --username test \
-    --password test \
-    --firstname Test \
-    --lastname Test \
-    --role User \
-    --email test@test.com
+    --username ${AF_USER_NAME} \
+    --password ${AF_USER_PASSWORD} \
+    --firstname ${AF_USER_FIRST_NAME} \
+    --lastname ${AF_USER_LAST_NAME} \
+    --role ${AF_USER_ROLE} \
+    --email ${AF_USER_EMAIL}
+
   echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 fi
+
 
 ############################################################################
 # Start the container
@@ -100,10 +103,16 @@ case "$1" in
   chill)
     ;;
   webserver)
-    airflow webserver
+    exec airflow webserver
     ;;
   scheduler)
-    airflow scheduler
+    exec airflow scheduler
+    ;;
+  worker)
+    exec airflow celery "$@" -q "$QUEUE_NAME"
+    ;;
+  flower)
+    exec airflow celery "$@"
     ;;
   *)
     exec "$@"

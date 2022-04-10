@@ -5,5 +5,6 @@ REPO="phidata"
 NAME="python"
 TAG="3.9.2"
 
+echo "Running: docker build -t $REPO/$NAME:$TAG $CURR_SCRIPT_DIR"
 docker build -t $REPO/$NAME:$TAG $CURR_SCRIPT_DIR
 docker push $REPO/$NAME:$TAG

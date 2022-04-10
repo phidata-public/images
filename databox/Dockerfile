@@ -38,14 +38,14 @@ RUN set -x \
   && pip install -U pip pip-tools setuptools wheel
 
 # Install airflow
-ARG AIRFLOW_VERSION=2.2.4
+ARG AIRFLOW_VERSION=2.2.5
 ENV AIRFLOW_VERSION=${AIRFLOW_VERSION}
 ARG PYTHON_VERSION_ARG=3.9
 ENV PYTHON_VERSION_ARG=${PYTHON_VERSION_ARG}
 ARG CONSTRAINT_URL="https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${PYTHON_VERSION_ARG}.txt"
 # Example: https://raw.githubusercontent.com/apache/airflow/constraints-2.2.4/constraints-3.9.txt
 # Details: https://airflow.apache.org/docs/apache-airflow/stable/installation/installing-from-pypi.html#constraints-files
-ARG AIRFLOW_EXTRAS="postgres,slack,amazon"
+ARG AIRFLOW_EXTRAS="celery,redis,postgres,slack,crypto"
 ENV AIRFLOW_EXTRAS=${AIRFLOW_EXTRAS}
 RUN pip install -U "apache-airflow[${AIRFLOW_EXTRAS}]==${AIRFLOW_VERSION}" --constraint "${CONSTRAINT_URL}"
 
