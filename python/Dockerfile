@@ -1,4 +1,4 @@
-FROM python:3.9.2-slim-buster
+FROM python:3.9.12-slim-buster
 LABEL maintainer="Ashpreet Bedi <ashpreet@phidata.com>"
 
 ARG TMP_DIR=/tmp
