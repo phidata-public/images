@@ -37,15 +37,6 @@ if [[ "$INSTALL_REQUIREMENTS" = true || "$INSTALL_REQUIREMENTS" = True ]]; then
 fi
 
 ############################################################################
-# Install workspace
-############################################################################
-
-echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-echo "Installing workspace"
-pip3 install --no-deps --editable $PHI_WORKSPACE_ROOT
-echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-
-############################################################################
 # Install phidata dev
 ############################################################################
 
@@ -85,7 +76,6 @@ if [[ "$CREATE_AIRFLOW_TEST_USER" = true || "$CREATE_AIRFLOW_TEST_USER" = True ]
     --lastname ${AF_USER_LAST_NAME} \
     --role ${AF_USER_ROLE} \
     --email ${AF_USER_EMAIL}
-
   echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 fi
 

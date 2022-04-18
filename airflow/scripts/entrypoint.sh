@@ -32,18 +32,6 @@ if [[ "$WAIT_FOR_REDIS" = true || "$WAIT_FOR_REDIS" = True ]]; then
 fi
 
 ############################################################################
-# Wait for workspace directory to be available
-############################################################################
-
-if [[ "$MOUNT_WORKSPACE" = true || "$MOUNT_WORKSPACE" = True ]]; then
-  echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-  sleep 5
-  echo "ls -l $PHI_WORKSPACE_PARENT : $(ls -l $PHI_WORKSPACE_PARENT)"
-  echo "ls -l $PHI_WORKSPACE_ROOT : $(ls -l $PHI_WORKSPACE_ROOT)"
-  echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-fi
-
-############################################################################
 # Install dependencies
 ############################################################################
 
@@ -53,15 +41,6 @@ if [[ "$INSTALL_REQUIREMENTS" = true || "$INSTALL_REQUIREMENTS" = True ]]; then
   pip3 install -r $REQUIREMENTS_FILE_PATH
   echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 fi
-
-############################################################################
-# Install workspace
-############################################################################
-
-echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-echo "Installing workspace"
-pip3 install --no-deps --editable $PHI_WORKSPACE_ROOT
-echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 
 ############################################################################
 # Init database
@@ -90,7 +69,6 @@ if [[ "$CREATE_AIRFLOW_TEST_USER" = true || "$CREATE_AIRFLOW_TEST_USER" = True ]
     --lastname ${AF_USER_LAST_NAME} \
     --role ${AF_USER_ROLE} \
     --email ${AF_USER_EMAIL}
-
   echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 fi
 
@@ -106,12 +84,30 @@ case "$1" in
     exec airflow webserver
     ;;
   scheduler)
+    if [[ "$INIT_AIRFLOW_DB" = true || "$INIT_AIRFLOW_DB" = True ]]; then
+      echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+      echo "Waiting 10 seconds for db to be initialized"
+      sleep 10
+      echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+    fi
     exec airflow scheduler
     ;;
   worker)
+    if [[ "$INIT_AIRFLOW_DB" = true || "$INIT_AIRFLOW_DB" = True ]]; then
+      echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+      echo "Waiting 10 seconds for db to be initialized"
+      sleep 10
+      echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+    fi
     exec airflow celery "$@" -q "$QUEUE_NAME"
     ;;
   flower)
+    if [[ "$INIT_AIRFLOW_DB" = true || "$INIT_AIRFLOW_DB" = True ]]; then
+      echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+      echo "Waiting 10 seconds for db to be initialized"
+      sleep 10
+      echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+    fi
     exec airflow celery "$@"
     ;;
   *)
